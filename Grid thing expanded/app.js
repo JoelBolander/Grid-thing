@@ -1,5 +1,8 @@
 window.focus;
 
+const house = new Image();
+house.src = "images/house.png";
+
 const grass = new Image();
 grass.src = "images/grass.png";
 
@@ -54,8 +57,14 @@ turn_top_right.src = "images/turn_top_right.png";
 let the_canvas = document.getElementById("myCanvas");
 let c = the_canvas.getContext("2d");
 
-let height = 800;
-let width = 800;
+let mouse_down = false
+
+let buyHouse = false
+
+let toggleSell = false
+
+let height = 500;
+let width = 500;
 
 var stop = false;
 var frameCount = 0;
@@ -84,6 +93,34 @@ clear_left_margin = clear_left_margin.toString() + "px";
 clearButton.style.marginTop = clear_top_margin;
 clearButton.style.marginLeft = clear_left_margin;
 
+let houseButton = document.getElementById("toggle-house-button");
+
+let houseButton_height = 80;
+let houseButton_width = 200;
+
+let house_top_margin = innerHeight / 2 - height / 2;
+let house_left_margin = innerWidth / 2 + width / 2 + 50;
+
+house_top_margin = house_top_margin.toString() + "px";
+house_left_margin = house_left_margin.toString() + "px";
+
+houseButton.style.marginTop = house_top_margin;
+houseButton.style.marginLeft = house_left_margin;
+
+let sellButton = document.getElementById("toggle-sell-button");
+
+let sellButton_height = 80;
+let sellButton_width = 200;
+
+let sell_top_margin = innerHeight / 2 - height / 2 + sellButton_height + 5;
+let sell_left_margin = innerWidth / 2 + width / 2 + 50;
+
+sell_top_margin = sell_top_margin.toString() + "px";
+sell_left_margin = sell_left_margin.toString() + "px";
+
+sellButton.style.marginTop = sell_top_margin;
+sellButton.style.marginLeft = sell_left_margin;
+
 startAnimating(60);
 
 // initialize the timer variables and start the animation
@@ -94,6 +131,12 @@ function startAnimating(fps) {
   startTime = then;
   animate();
 }
+
+sellButton.style.height = sellButton_height.toString() + "px";
+sellButton.style.width = sellButton_width.toString() + "px";
+
+houseButton.style.height = houseButton_height.toString() + "px";
+houseButton.style.width = houseButton_width.toString() + "px";
 
 clearButton.style.height = clearButton_height.toString() + "px";
 clearButton.style.width = clearButton_width.toString() + "px";
@@ -118,9 +161,52 @@ for (let index = 0; index < grid_number; index++) {
       bottom_bought: false,
       left_bought: false,
       right_bought: false,
+      isHouse: false,
     });
   }
 }
+
+houseButton.addEventListener("mousedown", (event) => {
+  houseButton.style.backgroundColor = "rgb(168, 129, 175)";
+});
+
+houseButton.addEventListener("mouseup", (event) => {
+  houseButton.style.backgroundColor =  "rgb(128, 102, 157)";
+  if (buyHouse) {
+    buyHouse = false
+    document.getElementById("button-text").innerHTML = "HOUSES: OFF"
+  } else {
+    buyHouse = true
+    document.getElementById("button-text").innerHTML = "HOUSES: ON"
+    toggleSell = false
+    document.getElementById("sell-button-text").innerHTML = "SELL: OFF"
+  }
+})
+
+houseButton.addEventListener("mouseout", (event) => {
+  houseButton.style.backgroundColor = "rgb(128, 102, 157)";
+});
+
+sellButton.addEventListener("mousedown", (event) => {
+  sellButton.style.backgroundColor = "rgb(168, 129, 175)";
+});
+
+sellButton.addEventListener("mouseup", (event) => {
+  sellButton.style.backgroundColor =  "rgb(128, 102, 157)";
+  if (toggleSell) {
+    toggleSell = false
+    document.getElementById("sell-button-text").innerHTML = "SELL: OFF"
+  } else {
+    toggleSell = true
+    buyHouse = false
+    document.getElementById("button-text").innerHTML = "HOUSES: OFF"
+    document.getElementById("sell-button-text").innerHTML = "SELL: ON"
+  }
+})
+
+sellButton.addEventListener("mouseout", (event) => {
+  sellButton.style.backgroundColor = "rgb(128, 102, 157)";
+});
 
 clearButton.addEventListener("mousedown", (event) => {
   clearButton.style.backgroundColor = "rgb(168, 129, 175)";
@@ -131,6 +217,7 @@ clearButton.addEventListener("mouseup", (event) => {
   for (let row = 0; row < grid_number; row++) {
     for (let column = 0; column < grid_number; column++) {
       grid[row][column].bought = false;
+      grid[row][column].isHouse = false
       grid[row][column].top_bought = false;
       grid[row][column].bottom_bought = false;
       grid[row][column].left_bought = false;
@@ -157,27 +244,51 @@ the_canvas.addEventListener("mousedown", (event) => {
         clickY > grid[row][column].minY &&
         clickY < grid[row][column].maxY
       ) {
-        grid[row][column].bought = true;
-        console.log(grid[row][column]);
-
-        if ((grid[row][column].bought = true)) {
+        if (toggleSell) {
+          grid[row][column].top_bought = false
+          grid[row][column].bought = false
+          grid[row][column].bottom_bought = false
+          grid[row][column].left_bought = false
+          grid[row][column].right_bought = false
+          grid[row][column].isHouse = false
           if (row > 0) {
-            grid[row - 1][column].bottom_bought = true;
+            grid[row - 1][column].bottom_bought = false;
           }
           if (row < grid_number - 1) {
-            grid[row + 1][column].top_bought = true;
+            grid[row + 1][column].top_bought = false;
           }
           if (column > 0) {
-            grid[row][column - 1].right_bought = true;
+            grid[row][column - 1].right_bought = false;
           }
           if (column < grid_number - 1) {
-            grid[row][column + 1].left_bought = true;
+            grid[row][column + 1].left_bought = false;
+      }
+        } else if (grid[row][column].bought) {
+         } else {
+              grid[row][column].bought = true;
+              if (buyHouse) {
+                grid[row][column].isHouse = true;
+              }
+              if ((grid[row][column].bought = true)) {
+                if (row > 0) {
+                  grid[row - 1][column].bottom_bought = true;
+                }
+                if (row < grid_number - 1) {
+                  grid[row + 1][column].top_bought = true;
+                }
+                if (column > 0) {
+                  grid[row][column - 1].right_bought = true;
+                }
+                if (column < grid_number - 1) {
+                  grid[row][column + 1].left_bought = true;
+            }
+            }
           }
         }
       }
     }
   }
-});
+);
 
 the_canvas.addEventListener("mousemove", (event) => {
   if (mouse_down) {
@@ -193,22 +304,48 @@ the_canvas.addEventListener("mousemove", (event) => {
           clickY > grid[row][column].minY &&
           clickY < grid[row][column].maxY
         ) {
-          grid[row][column].bought = true;
-
-          if ((grid[row][column].bought = true)) {
+          if (toggleSell) {
+            grid[row][column].top_bought = false
+            grid[row][column].bought = false
+            grid[row][column].bottom_bought = false
+            grid[row][column].left_bought = false
+            grid[row][column].right_bought = false
+            grid[row][column].isHouse = false
             if (row > 0) {
-              grid[row - 1][column].bottom_bought = true;
+              grid[row - 1][column].bottom_bought = false;
             }
             if (row < grid_number - 1) {
-              grid[row + 1][column].top_bought = true;
+              grid[row + 1][column].top_bought = false;
             }
             if (column > 0) {
-              grid[row][column - 1].right_bought = true;
+              grid[row][column - 1].right_bought = false;
             }
             if (column < grid_number - 1) {
-              grid[row][column + 1].left_bought = true;
-            }
+              grid[row][column + 1].left_bought = false;
+        }
+          } else if (grid[row][column].bought) {
+           } else {
+                grid[row][column].bought = true;
+                if (buyHouse) {
+                  grid[row][column].isHouse = true;
+                }
+                if ((grid[row][column].bought = true)) {
+                  if (row > 0) {
+                    grid[row - 1][column].bottom_bought = true;
+                  }
+                  if (row < grid_number - 1) {
+                    grid[row + 1][column].top_bought = true;
+                  }
+                  if (column > 0) {
+                    grid[row][column - 1].right_bought = true;
+                  }
+                  if (column < grid_number - 1) {
+                    grid[row][column + 1].left_bought = true;
+              }
+           }
+            
           }
+          
         }
       }
     }
@@ -242,7 +379,9 @@ function animate() {
     for (i = 0; i < grid_number; i++) {
       for (j = 0; j < grid_number; j++) {
         if (grid[i][j].bought) {
-          if (
+          if (grid[i][j].isHouse){
+            image = house
+          } else if (
             grid[i][j].top_bought &&
             grid[i][j].bottom_bought &&
             grid[i][j].left_bought &&
